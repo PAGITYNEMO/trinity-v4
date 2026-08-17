@@ -1,0 +1,27 @@
+# ── 本地工具链与下载（不进仓库）──────────────────────────
+_gradle/
+_jdk21/
+_gradle.zip
+_jdk21.zip
+.gradle/
+
+# ── 游戏客户端：Mojang 版权资产，绝不随仓库分发 ──────────
+minecraft-client/.minecraft/
+minecraft-client/classpath/
+minecraft-client/HMCL/
+minecraft-client/logs/
+minecraft-client/start-offline.bat
+
+# ── 构建产物 ───────────────────────────────────────────
+engine/build/
+engine/out*/
+engine/out3d/
+engine/sources.txt
+minecraft-mod/build/
+minecraft-mod/run/
+minecraft-mod/sources.txt
+
+# ── 系统杂项 ───────────────────────────────────────────
+*.log
+.DS_Store
+Thumbs.db

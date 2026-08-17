@@ -1,0 +1,50 @@
+plugins {
+    id 'fabric-loom' version '1.17.19'
+}
+
+version = '4.0.0'
+group = 'net.trinity'
+
+base {
+    archivesName = 'trinity-noise'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:1.21.4"
+    mappings "net.fabricmc:yarn:1.21.4+build.8:v2"
+    modImplementation "net.fabricmc:fabric-loader:0.19.3"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.119.4+1.21.4"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+// The four-pole engine core (Rng + poles) compiles straight into the mod —
+// single source of truth, no copied code.
+sourceSets {
+    main {
+        java {
+            srcDir '../engine/src/trinity/core'
+            srcDir '../engine/src/trinity/poles'
+        }
+    }
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') {
+        expand version: project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}

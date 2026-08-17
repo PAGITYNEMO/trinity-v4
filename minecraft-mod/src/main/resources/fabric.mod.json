@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "trinity-noise",
+  "version": "${version}",
+  "name": "TRINITY v4.0 · Noise Unified Field Theory",
+  "description": "Four-pole terrain generation: PAGITY filters, NEMO couples, RAMANUJAN observes Ramanujan-sum patterns, AXIS measures entropy and structure. Create a world with the 'Trinity' preset.",
+  "authors": ["TRINITY"],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["trinity.mod.TrinityMod"],
+    "client": ["trinity.mod.client.TrinityClientMod"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.4",
+    "java": ">=21"
+  }
+}
