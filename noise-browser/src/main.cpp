@@ -217,10 +217,16 @@ public:
             return E_FAIL;
         }
 
+        /* 设置区域并确认 */
+        layoutChildren();
+        RECT bnd = {0, 0, 0, 0};
+        gController->get_Bounds(&bnd);
+        BOOL vis = FALSE;
+        gController->get_IsVisible(&vis);
+        nlog("[init] bounds=%d,%d,%d,%d visible=%d\n", bnd.left, bnd.top, bnd.right, bnd.bottom, vis ? 1 : 0);
+
         /* 事件：导航完成 -> 四极度量 */
         gWebView->add_NavigationCompleted(new NavCompletedHandler(), nullptr);
-        /* 设置区域并打开主页 */
-        layoutChildren();
         nlog("[init] navigating home\n");
         gWebView->Navigate(L"https://www.bing.com");
         return S_OK;
