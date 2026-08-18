@@ -2,8 +2,12 @@ package trinity.mod;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.entity.EntityDimensions;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -13,6 +17,8 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import trinity.mod.bot.TrinityBotCommand;
+import trinity.mod.bot.TrinityBotEntity;
 
 /**
  * TRINITY v4.0 entry point.
@@ -23,6 +29,7 @@ import org.slf4j.LoggerFactory;
  *  - the Trinity Crystal block + item + block entity (light-curtain made
  *    visible; light pulses with the server tide clock, the renderer animates
  *    from the client clock with per-crystal phase and seasonal color)
+ *  - the four-pole companion bot entity (PAGITY/NEMO/AXIS/RAMANUJAN players)
  *  - the tide clock (server tick) and the seasonal weather policy
  */
 public final class TrinityMod implements ModInitializer {
@@ -31,6 +38,7 @@ public final class TrinityMod implements ModInitializer {
 
     public static TrinityCrystalBlock CRYSTAL;
     public static BlockEntityType<TideCrystalBlockEntity> CRYSTAL_ENTITY;
+    public static EntityType<TrinityBotEntity> BOT_TYPE;
 
     public static Identifier id(String path) {
         return Identifier.of(MOD_ID, path);
@@ -57,6 +65,18 @@ public final class TrinityMod implements ModInitializer {
                 FabricBlockEntityTypeBuilder.create(TideCrystalBlockEntity::new, CRYSTAL).build());
         LOGGER.info("[TRINITY v4.0] trinity crystal + block entity registered: {} "
                 + "(/give @s trinity-noise:trinity_crystal)", id("trinity_crystal"));
+
+        // Four-pole companion bot
+        BOT_TYPE = Registry.register(Registries.ENTITY_TYPE, id("trinity_bot"),
+                EntityType.Builder.create(TrinityBotEntity::new, SpawnGroup.MISC)
+                        .dimensions(0.6f, 1.8f)
+                        .maxTrackingRange(64)
+                        .trackingTickInterval(2)
+                        .build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, id("trinity_bot"))));
+        FabricDefaultAttributeRegistry.register(BOT_TYPE, TrinityBotEntity.createBotAttributes());
+        TrinityBotCommand.register();
+        LOGGER.info("[TRINITY v4.0] trinity bot registered: {} "
+                + "(/trinity bot summon PAGITY|NEMO|AXIS|RAMANUJAN)", id("trinity_bot"));
 
         TideClock.wire();
         WeatherPulse.wire();
