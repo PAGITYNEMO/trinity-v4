@@ -1,0 +1,33 @@
+# rdr2-nemo — MinGW 构建
+# 用法：mingw32-make -f Makefile.mingw
+#
+# 说明：
+#  - ScriptHookRDR2.lib 是 MSVC 格式，MinGW 需要从 ScriptHookRDR2.dll
+#    生成 import lib。把 ScriptHookRDR2.dll（从 dev-c.com 下载）放到
+#    lib/ 目录后，本 Makefile 会自动生成 lib/libScriptHookRDR2.a。
+#  - 生成产物：nemo.asi，复制到 RDR2 游戏根目录即可被 asi loader 加载。
+
+CXX     := g++
+CXXFLAGS:= -O2 -Wall -Wno-unused-parameter -Wno-deprecated-declarations -std=c++17 -D_CRT_SECURE_NO_WARNINGS -DSCRIPT_HOOK_EXTERN_C
+LDFLAGS := -static-libgcc -static-libstdc++
+INC     := -Iinc
+LIBS    := -Llib -lScriptHookRDR2 -lws2_32
+TARGET  := nemo.asi
+
+SRCS := src/main.cpp src/nemo.cpp
+OBJS := $(SRCS:.cpp=.o)
+
+all: lib/libScriptHookRDR2.a $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CXX) -shared -o $@ $(OBJS) $(LDFLAGS) $(LIBS)
+
+%.o: %.cpp src/nemo.h
+	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+
+# 从真实 DLL 生成 MinGW import lib（首次构建自动执行）
+lib/libScriptHookRDR2.a: lib/ScriptHookRDR2.dll
+	dlltool -d lib/ScriptHookRDR2.def -l lib/libScriptHookRDR2.a -D ScriptHookRDR2.dll
+
+clean:
+	del /q $(OBJS) $(TARGET) 2>nul || rm -f $(OBJS) $(TARGET)

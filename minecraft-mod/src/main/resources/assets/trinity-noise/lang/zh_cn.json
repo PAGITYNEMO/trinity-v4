@@ -2,5 +2,11 @@
   "generator.trinity-noise.trinity": "Trinity（四极噪声）",
   "generator.trinity-noise.trinity.description": "由 TRINITY v4.0 四极噪声引擎生成的地形：PAGITY 过滤，NEMO 耦合，RAMANUJAN 观察拉马努金和图纹，AXIS 度量。",
   "block.trinity-noise.trinity_crystal": "光幕水晶",
-  "block.trinity-noise.trinity_crystal.description": "被看见的光幕。它的光辉随潮汐时钟脉动——心跳驱动光照，呼吸峰值散落粒子。"
+  "block.trinity-noise.trinity_crystal.description": "被看见的光幕。它的光辉随潮汐时钟脉动——心跳驱动光照，呼吸峰值散落粒子。",
+  "entity.trinity-noise.skyra": "天穹猎手（Skyra）",
+  "entity.trinity-noise.abyss": "深渊守望者（Abyss）",
+  "entity.trinity-noise.aurora": "极光之龙（Aurora）",
+  "entity.trinity-noise.abyss_king": "深渊之心（Abyss King）",
+  "item.trinity-noise.aurora_core": "极光之核",
+  "item.trinity-noise.abyss_core": "深渊之核"
 }

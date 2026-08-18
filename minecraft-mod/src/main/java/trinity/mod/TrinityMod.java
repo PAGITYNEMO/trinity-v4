@@ -17,6 +17,11 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import trinity.mod.beast.AbyssEntity;
+import trinity.mod.beast.AbyssKingEntity;
+import trinity.mod.beast.AuroraEntity;
+import trinity.mod.beast.BeastSpawning;
+import trinity.mod.beast.SkyraEntity;
 import trinity.mod.bot.TrinityBotCommand;
 import trinity.mod.bot.TrinityBotEntity;
 
@@ -39,6 +44,12 @@ public final class TrinityMod implements ModInitializer {
     public static TrinityCrystalBlock CRYSTAL;
     public static BlockEntityType<TideCrystalBlockEntity> CRYSTAL_ENTITY;
     public static EntityType<TrinityBotEntity> BOT_TYPE;
+    public static EntityType<SkyraEntity> SKYRA_TYPE;
+    public static EntityType<AbyssEntity> ABYSS_TYPE;
+    public static EntityType<AuroraEntity> AURORA_TYPE;
+    public static EntityType<AbyssKingEntity> ABYSS_KING_TYPE;
+    public static Item AURORA_CORE;
+    public static Item ABYSS_CORE;
 
     public static Identifier id(String path) {
         return Identifier.of(MOD_ID, path);
@@ -77,6 +88,58 @@ public final class TrinityMod implements ModInitializer {
         TrinityBotCommand.register();
         LOGGER.info("[TRINITY v4.0] trinity bot registered: {} "
                 + "(/trinity bot summon PAGITY|NEMO|AXIS|RAMANUJAN)", id("trinity_bot"));
+
+        // Skyra: native of the sky (patrols ridges, dives on airspace intruders)
+        SKYRA_TYPE = Registry.register(Registries.ENTITY_TYPE, id("skyra"),
+                EntityType.Builder.create(SkyraEntity::new, SpawnGroup.CREATURE)
+                        .dimensions(0.9f, 1.4f)
+                        .maxTrackingRange(96)
+                        .trackingTickInterval(2)
+                        .build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, id("skyra"))));
+        FabricDefaultAttributeRegistry.register(SKYRA_TYPE, SkyraEntity.createSkyraAttributes());
+
+        // Abyss: native of the deep (guards vein chains, rides the tide)
+        ABYSS_TYPE = Registry.register(Registries.ENTITY_TYPE, id("abyss"),
+                EntityType.Builder.create(AbyssEntity::new, SpawnGroup.WATER_CREATURE)
+                        .dimensions(0.8f, 1.0f)
+                        .maxTrackingRange(80)
+                        .trackingTickInterval(2)
+                        .build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, id("abyss"))));
+        FabricDefaultAttributeRegistry.register(ABYSS_TYPE, AbyssEntity.createAbyssAttributes());
+
+        BeastSpawning.wire();
+        LOGGER.info("[TRINITY v4.0] skyra + abyss registered (natives of sky & deep, terrain-coupled); "
+                + "spawning wired: /trinity sky|abyss summon|remove");
+
+        // Aurora: lord of the sky (three-phase boss, boss bar, summons skyra)
+        AURORA_TYPE = Registry.register(Registries.ENTITY_TYPE, id("aurora"),
+                EntityType.Builder.create(AuroraEntity::new, SpawnGroup.MISC)
+                        .dimensions(3.0f, 2.0f)
+                        .maxTrackingRange(128)
+                        .trackingTickInterval(2)
+                        .build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, id("aurora"))));
+        FabricDefaultAttributeRegistry.register(AURORA_TYPE, AuroraEntity.createAuroraAttributes());
+
+        // Abyss King: heart of the deep (three-phase boss, rides the tide)
+        ABYSS_KING_TYPE = Registry.register(Registries.ENTITY_TYPE, id("abyss_king"),
+                EntityType.Builder.create(AbyssKingEntity::new, SpawnGroup.MISC)
+                        .dimensions(4.5f, 4.0f)
+                        .maxTrackingRange(128)
+                        .trackingTickInterval(2)
+                        .build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, id("abyss_king"))));
+        FabricDefaultAttributeRegistry.register(ABYSS_KING_TYPE, AbyssKingEntity.createAbyssKingAttributes());
+
+        // Boss loot cores
+        AURORA_CORE = Registry.register(Registries.ITEM, id("aurora_core"),
+                new Item(new Item.Settings()
+                        .registryKey(RegistryKey.of(RegistryKeys.ITEM, id("aurora_core")))
+                        .rarity(net.minecraft.util.Rarity.EPIC)));
+        ABYSS_CORE = Registry.register(Registries.ITEM, id("abyss_core"),
+                new Item(new Item.Settings()
+                        .registryKey(RegistryKey.of(RegistryKeys.ITEM, id("abyss_core")))
+                        .rarity(net.minecraft.util.Rarity.EPIC)));
+        LOGGER.info("[TRINITY v4.0] bosses registered: aurora (sky) + abyss_king (deep), "
+                + "cores looted: /trinity boss aurora|abyss summon|remove");
 
         TideClock.wire();
         WeatherPulse.wire();

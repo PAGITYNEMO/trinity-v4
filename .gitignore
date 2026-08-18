@@ -25,3 +25,8 @@ minecraft-mod/sources.txt
 *.log
 .DS_Store
 Thumbs.db
+# rdr2-nemo: ScriptHookRDR2 SDK 与运行库（SDK 条款禁止再分发，从 dev-c.com 获取）
+rdr2-nemo/inc/
+rdr2-nemo/lib/
+rdr2-nemo/nemo.asi
+rdr2-nemo/src/*.o
