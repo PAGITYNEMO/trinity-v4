@@ -223,6 +223,9 @@ static int  q1 = 23, q2 = 43;       /* 模板 q 对（引擎同源种子） */
 static long worldSalt = 1976124607L; /* 世界种子（TRINITY 世界的种子） */
 static Vector3 gLastPos = {0, 0, 0}; /* 最近玩家位置（HUD 节点读数用） */
 
+/* RDR2 文本渲染：官方 NativeTrainer 方法（UI::DRAW_TEXT + CREATE_STRING），见文本渲染节 */
+static void drawText(float x, float y, const char* str, float scale, int r, int g, int b, int a);
+
 /* 季节基色（定义在光子部分；此处前向声明供节点系统使用） */
 static void seasonColor(float& r, float& g, float& b);
 
@@ -468,12 +471,46 @@ static void photonsUpdate(Vector3 pos, float dt) {
     }
 }
 
+/* 事件光幕脉冲：字显示不了时，光幕用颜色说话（TRINITY：语言是光的图纹） */
+static struct {
+    float r, g, b;
+    float amp;
+    int born;
+    int dur;
+    bool active;
+} gPulse = {1, 1, 1, 0, 0, 0, false};
+
+static void pulseTrigger(float r, float g, float b, float amp, int durFrames) {
+    gPulse.r = r;
+    gPulse.g = g;
+    gPulse.b = b;
+    gPulse.amp = amp;
+    gPulse.born = nemoTick;
+    gPulse.dur = durFrames;
+    gPulse.active = true;
+}
+
+static void pulseTick() {
+    if (gPulse.active && nemoTick - gPulse.born > gPulse.dur) {
+        gPulse.active = false;
+    }
+}
+
+/* 脉冲强度 0..1 */
+static float pulseStrength() {
+    if (!gPulse.active) return 0;
+    int age = nemoTick - gPulse.born;
+    float t = age / (float)gPulse.dur;
+    return (1.0f - t) * gPulse.amp;
+}
+
 /* 光幕渲染：三层节拍（近每帧 / 远每 2 帧 / 天顶每 3 帧），共 ~88 光点/帧 */
 static void photonsRender() {
     float sr, sg, sb;
     seasonColor(sr, sg, sb);
     bool drawFar = (nemoTick % 2 == 0);
     bool drawSky = (nemoTick % 3 == 0);
+    float ps = pulseStrength();
     for (int i = 0; i < gPhotonCount; i++) {
         if (i >= PHOTON_NEAR) {
             if (i < PHOTON_NEAR + PHOTON_FAR) {
@@ -489,7 +526,13 @@ static void photonsRender() {
         r = r * 0.4f + sr * 0.6f;
         g = g * 0.4f + sg * 0.6f;
         b = b * 0.4f + sb * 0.6f;
-        float intensity = 0.30f + 0.55f * p.bright;
+        /* 事件脉冲：光幕被事件染色 */
+        if (ps > 0) {
+            r = r * (1 - ps) + gPulse.r * ps;
+            g = g * (1 - ps) + gPulse.g * ps;
+            b = b * (1 - ps) + gPulse.b * ps;
+        }
+        float intensity = (0.30f + 0.55f * p.bright) * (1.0f + 1.2f * ps);
         GRAPHICS::DRAW_LIGHT_WITH_RANGE(p.x, p.y, p.z,
                                         (int)(r * 255), (int)(g * 255), (int)(b * 255),
                                         4.0f + 4.0f * p.bright, intensity);
@@ -577,10 +620,7 @@ static void renderHud() {
     snprintf(buf, sizeof(buf),
              "NEMO 对偶场  R=%.2f H=%.2f S=%.2f k=%.2f  光子=%d  %s%s",
              gR, gH, gS, gKappa, gPhotonCount, emerge, nodebuf);
-    HUD::SET_TEXT_SCALE(0.40f, 0.40f);
-    HUD::_SET_TEXT_COLOR(140, 230, 255, 210);
-    HUD::SET_TEXT_CENTRE(false);
-    HUD::_DISPLAY_TEXT(buf, 0.02f, 0.88f);
+    drawText(0.02f, 0.88f, buf, 0.40f, 140, 230, 255, 210);
 }
 
 /* ================= 场驱动涌现（天气 / 动物） ================= */
@@ -666,6 +706,7 @@ static void worldGen() {
         MISC::_SET_WEATHER_TYPE(joaat(w), true, true, true, 12.0f, true);
         nlog("[worldgen] first event: weather %s (season %d, field %.2f)\n", w, seasonIndex(), field);
         gQ->say(L"天空开始变脸", 6000);
+        pulseTrigger(0.9f, 0.9f, 1.0f, 1.0f, 90); /* 白光脉冲：天空变脸 */
         return;
     }
 
@@ -679,25 +720,39 @@ static void worldGen() {
         MISC::_SET_WEATHER_TYPE(joaat(w), true, true, true, 12.0f, true);
         nlog("[worldgen] weather event (field %.2f): %s\n", field, w);
         gQ->say(L"对偶场的张力在这里爆发", 6000);
+        pulseTrigger(0.9f, 0.9f, 1.0f, 1.0f, 90);
     } else if (r < 0.22) {
         const char* m = MODELS_DEER[(int)(r * 100) % 4];
         int n = genHerdOne(m, 3 + (int)(r * 30) % 3, pos, 50, 0);
-        if (n > 0) gQ->say(L"一群鹿从山脊那边过来了", 5000);
+        if (n > 0) {
+            gQ->say(L"一群鹿从山脊那边过来了", 5000);
+            pulseTrigger(0.3f, 0.9f, 0.4f, 0.8f, 80); /* 绿脉冲：鹿群 */
+        }
     } else if (r < 0.38) {
         const char* m = MODELS_WOLF[(int)(r * 100) % 2];
         int n = genHerdOne(m, 3, pos, 45, 0);
-        if (n > 0) gQ->say(L"……有狼群在附近低嚎", 5000);
+        if (n > 0) {
+            gQ->say(L"……有狼群在附近低嚎", 5000);
+            pulseTrigger(1.0f, 0.3f, 0.3f, 0.9f, 80); /* 红脉冲：狼群 */
+        }
     } else if (r < 0.52) {
         const char* m = MODELS_BIRD[(int)(r * 100) % 3];
         int n = genHerdOne(m, 2 + (int)(r * 30) % 3, pos, 30, 38);
-        if (n > 0) gQ->say(L"秃鹫在头顶盘旋——它们闻到了什么", 5000);
+        if (n > 0) {
+            gQ->say(L"秃鹫在头顶盘旋——它们闻到了什么", 5000);
+            pulseTrigger(0.4f, 0.6f, 1.0f, 0.8f, 80); /* 蓝脉冲：秃鹫 */
+        }
     } else if (r < 0.86) {
         const char* m = MODELS_HORSE[(int)(r * 100) % 3];
         int n = genHerdOne(m, 2 + (int)(r * 20) % 2, pos, 55, 0);
-        if (n > 0) gQ->say(L"一群野马从远处跑过", 5000);
+        if (n > 0) {
+            gQ->say(L"一群野马从远处跑过", 5000);
+            pulseTrigger(1.0f, 0.7f, 0.3f, 0.8f, 80); /* 橙脉冲：野马 */
+        }
     } else {
         gQ->say(L"风把旧世界的气味吹过来了", 5000);
         nlog("[worldgen] whisper event (field %.2f)\n", field);
+        pulseTrigger(0.7f, 0.5f, 1.0f, 0.8f, 80); /* 紫脉冲：低语 */
     }
 }
 
@@ -717,27 +772,38 @@ static void envPulse() {
     }
 }
 
-/* ---------------- 字幕渲染 ---------------- */
+/* ---------------- 文本渲染（官方 NativeTrainer 方法：DRAW_TEXT + CREATE_STRING） ----------------
+ * 关键：DRAW_TEXT(0xD79334A4BB99BAD1) 第一个参数必须是
+ * GAMEPLAY::CREATE_STRING(10, "LITERAL_STRING", str) 包装的文本组件——
+ * 直接传裸字符串不会显示（之前的坑）。镜像头缺失 CREATE_STRING，用 invoke 直调。
+ */
+
+static inline char* createString(const char* s) {
+    return invoke<char*>(0xFA925AC00EB830B9, 10, (char*)"LITERAL_STRING", (char*)s);
+}
+
+static void drawText(float x, float y, const char* str, float scale, int r, int g, int b, int a) {
+    HUD::SET_TEXT_SCALE(0.0f, scale);
+    HUD::_SET_TEXT_COLOR(r, g, b, a);
+    HUD::SET_TEXT_CENTRE(0);
+    HUD::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
+    HUD::_DISPLAY_TEXT(createString(str), x, y);
+}
 
 static void renderLines() {
     std::vector<NemoLine> lines;
     gQ->copyLines(lines);
     DWORD now = GetTickCount();
-    int shown = 0;
+    /* 取最旧的活动字幕（一次只显示一条，避免刷屏） */
+    std::string show;
     for (size_t i = 0; i < lines.size(); i++) {
-        const NemoLine& l = lines[i];
-        DWORD age = now - l.startTick;
-        if (age > (DWORD)l.lifeMs) continue;
-        if (shown >= 4) break;
-        float alpha = 1.0f;
-        if (age > (DWORD)(l.lifeMs - 1500)) alpha = (float)(l.lifeMs - age) / 1500.0f;
-        std::string utf = wide_to_utf8(l.text);
-        HUD::SET_TEXT_SCALE(0.55f, 0.55f);
-        HUD::_SET_TEXT_COLOR(255, 236, 180, (int)(255 * alpha));
-        HUD::SET_TEXT_CENTRE(true);
-        HUD::SET_TEXT_DROPSHADOW(2, 0, 0, 0, (int)(200 * alpha));
-        HUD::_DISPLAY_TEXT(utf.c_str(), 0.5f, 0.32f + shown * 0.045f);
-        shown++;
+        DWORD age = now - lines[i].startTick;
+        if (age > (DWORD)lines[i].lifeMs) continue;
+        show = wide_to_utf8(lines[i].text);
+        break;
+    }
+    if (!show.empty()) {
+        drawText(0.5f, 0.42f, show.c_str(), 0.55f, 255, 236, 180, 255);
     }
 }
 
@@ -760,6 +826,7 @@ void ScriptMain() {
             rippleCheck(pos);                             /* 每帧：玩家=噪声源 */
             if (nemoTick % 300 == 0) nodesScan(pos);      /* 每 5 秒：图纹节点扫描 */
             nodesRender();                                /* 每帧：节点光柱 */
+            pulseTick();                                  /* 每帧：事件脉冲计时 */
             if (nemoTick % 30 == 0) measureField(pos);
             if (nemoTick % 20 == 0) worldGen();
         }
@@ -773,6 +840,7 @@ void ScriptMain() {
                     L"你踩过的每一寸土，都在另一端被写下",
                 };
                 gQ->say(whispers[rand() % 4], 5000);
+                pulseTrigger(0.7f, 0.5f, 1.0f, 0.7f, 70); /* 紫脉冲：低语 */
             }
         }
         renderLines();
