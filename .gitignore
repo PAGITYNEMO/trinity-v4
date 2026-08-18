@@ -1,18 +1,18 @@
-# ── 本地工具链与下载（不进仓库）──────────────────────────
+# 鈹€鈹€ 鏈湴宸ュ叿閾句笌涓嬭浇锛堜笉杩涗粨搴擄級鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 _gradle/
 _jdk21/
 _gradle.zip
 _jdk21.zip
 .gradle/
 
-# ── 游戏客户端：Mojang 版权资产，绝不随仓库分发 ──────────
+# 鈹€鈹€ 娓告垙瀹㈡埛绔細Mojang 鐗堟潈璧勪骇锛岀粷涓嶉殢浠撳簱鍒嗗彂 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 minecraft-client/.minecraft/
 minecraft-client/classpath/
 minecraft-client/HMCL/
 minecraft-client/logs/
 minecraft-client/start-offline.bat
 
-# ── 构建产物 ───────────────────────────────────────────
+# 鈹€鈹€ 鏋勫缓浜х墿 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 engine/build/
 engine/out*/
 engine/out3d/
@@ -21,11 +21,11 @@ minecraft-mod/build/
 minecraft-mod/run/
 minecraft-mod/sources.txt
 
-# ── 系统杂项 ───────────────────────────────────────────
+# 鈹€鈹€ 绯荤粺鏉傞」 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 *.log
 .DS_Store
 Thumbs.db
-# rdr2-nemo: ScriptHookRDR2 SDK �����п⣨SDK �����ֹ�ٷַ����� dev-c.com ��ȡ��
+# rdr2-nemo: ScriptHookRDR2 SDK 与运行库（SDK 条款禁止再分发，从 dev-c.com 获取）
 rdr2-nemo/inc/
 rdr2-nemo/lib/
 rdr2-nemo/nemo.asi
